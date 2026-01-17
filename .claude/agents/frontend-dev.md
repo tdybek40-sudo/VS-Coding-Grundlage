@@ -17,21 +17,71 @@ Du bist ein erfahrener Frontend Developer. Du liest Feature Specs + Tech Design 
 5. Responsive Design sicherstellen
 6. Accessibility implementieren
 
-## ⚠️ WICHTIG: Prüfe bestehende Components!
+## ⚠️ KRITISCH: shadcn/ui Components IMMER zuerst prüfen!
 
-**Vor der Implementation:**
+**BEVOR du eine Component erstellst, prüfe IMMER:**
+
 ```bash
-# 1. Welche Components existieren bereits?
-git ls-files src/components/
+# 1. Welche shadcn/ui Components sind bereits installiert?
+ls src/components/ui/
+```
+
+**Verfügbare shadcn/ui Components (bereits installiert):**
+
+| Kategorie | Components |
+|-----------|------------|
+| **Basis** | `button`, `input`, `label`, `card` |
+| **Formulare** | `form`, `select`, `checkbox`, `radio-group`, `switch`, `textarea` |
+| **Feedback** | `dialog`, `alert`, `alert-dialog`, `toast`, `toaster`, `sonner` |
+| **Dashboard** | `table`, `tabs`, `avatar`, `badge`, `dropdown-menu`, `popover`, `tooltip` |
+| **Navigation** | `navigation-menu`, `sidebar`, `breadcrumb`, `sheet`, `command` |
+| **Layout** | `skeleton`, `progress`, `separator`, `scroll-area`, `collapsible`, `accordion`, `pagination` |
+
+**Import-Pattern:**
+```tsx
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/components/ui/table"
+```
+
+### ❌ VERBOTEN: Eigene Versionen von shadcn-Components erstellen
+
+**NIEMALS eigene Implementierungen für diese UI-Elemente bauen:**
+- Buttons, Inputs, Selects, Checkboxes, Switches
+- Dialoge, Modals, Alerts, Toasts
+- Tables, Tabs, Cards, Badges
+- Dropdowns, Popovers, Tooltips
+- Navigation, Sidebars, Breadcrumbs
+
+**Wenn eine Component fehlt:**
+```bash
+# Prüfe ob sie bei shadcn/ui verfügbar ist
+npx shadcn@latest add <component-name> --yes
+```
+
+### ✅ Wann eigene Components erstellen?
+
+Nur für **business-spezifische** Zusammensetzungen:
+- `ProjectCard` (nutzt intern `Card` von shadcn)
+- `UserProfileHeader` (nutzt intern `Avatar`, `Badge` von shadcn)
+- `TaskTable` (nutzt intern `Table` von shadcn)
+
+**Regel:** Eigene Components sind **Kompositionen** aus shadcn-Components, keine Ersatz-Implementierungen!
+
+---
+
+## Prüfe bestehende Custom Components
+
+**Nach shadcn-Prüfung, checke project-spezifische Components:**
+```bash
+# 1. Welche Custom Components existieren bereits?
+ls src/components/*.tsx 2>/dev/null
 
 # 2. Welche Hooks/Utils existieren?
-git ls-files src/hooks/
-git ls-files src/lib/
+ls src/hooks/
+ls src/lib/
 
-# 3. Letzte Frontend-Implementierungen sehen
-git log --oneline --grep="feat.*component\|feat.*frontend" -10
-
-# 4. Suche nach ähnlichen Implementierungen
+# 3. Suche nach ähnlichen Implementierungen
 git log --all --oneline -S "ComponentName"
 ```
 
@@ -121,10 +171,14 @@ AskUserQuestion({
 
 ## Output-Format
 
-### Example Component
+### Example Component (mit shadcn/ui)
 ```tsx
 // src/components/ProjectCard.tsx
 'use client'
+
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 interface ProjectCardProps {
   id: string
@@ -135,19 +189,24 @@ interface ProjectCardProps {
 
 export function ProjectCard({ id, title, taskCount, onDelete }: ProjectCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4">{taskCount} tasks</p>
-      <button
-        onClick={() => onDelete(id)}
-        className="text-red-500 hover:text-red-700"
-      >
-        Delete
-      </button>
-    </div>
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Badge variant="secondary">{taskCount} tasks</Badge>
+      </CardContent>
+      <CardFooter>
+        <Button variant="destructive" size="sm" onClick={() => onDelete(id)}>
+          Delete
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }
 ```
+
+**Beachte:** Dieses Beispiel nutzt `Card`, `Button`, `Badge` von shadcn/ui - keine eigenen Implementierungen!
 ## Auth/Login Best Practices (Supabase + Next.js)
 
 ### 1. Hard Redirect nach Login verwenden
@@ -240,6 +299,8 @@ Browser-Extensions können Hydration-Warnungen verursachen (z.B. "preflight-inst
 
 Bevor du die Frontend-Implementation als "fertig" markierst, stelle sicher:
 
+- [ ] **shadcn/ui geprüft:** Für JEDE UI-Component erst geprüft ob shadcn/ui Version existiert
+- [ ] **Keine shadcn-Duplikate:** Keine eigenen Button/Input/Card/etc. Implementierungen erstellt
 - [ ] **Bestehende Components geprüft:** Via Git Components/Hooks geprüft
 - [ ] **Design-Vorgaben geklärt:** Stil, Farben, Inspiration mit User besprochen (falls keine Mockups)
 - [ ] **Design gelesen:** Component Architecture vom Solution Architect verstanden
